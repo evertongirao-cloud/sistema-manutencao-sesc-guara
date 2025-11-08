@@ -34,7 +34,7 @@ function createTransporter() {
   return nodemailer.createTransport({
     host,
     port,
-    secure: false, // true para 465, false para outras portas
+    secure: false,
     auth: {
       user,
       pass,
@@ -47,19 +47,30 @@ function createTransporter() {
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('[Email] Credenciais SMTP não configuradas');
+      return false;
+    }
+    
     const transporter = createTransporter();
     
-    await transporter.sendMail({
+    console.log('[Email] Tentando enviar e-mail para:', options.to);
+    
+    const info = await transporter.sendMail({
       from: `"Sistema de Manutenção" <${process.env.SMTP_USER}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
     });
 
-    console.log(`[Email] Enviado para ${options.to}: ${options.subject}`);
+    console.log(`[Email] ✓ Enviado com sucesso para ${options.to}:`, info.messageId);
     return true;
   } catch (error) {
-    console.error('[Email] Erro ao enviar e-mail:', error);
+    console.error('[Email] ✗ Erro ao enviar e-mail:', {
+      error: error instanceof Error ? error.message : String(error),
+      to: options.to,
+      subject: options.subject,
+    });
     return false;
   }
 }
@@ -188,7 +199,7 @@ export async function sendNewTicketNotification(ticket: {
           </div>
 
           <div style="text-align: center;">
-            <a href="${process.env.VITE_FRONTEND_FORGE_API_URL || 'https://seu-site.com'}/admin" class="button">
+            <a href="https://seu-site.com/admin" class="button">
               Acessar Painel de Manutenção
             </a>
           </div>
@@ -205,7 +216,7 @@ export async function sendNewTicketNotification(ticket: {
   for (const email of emailsToSend) {
     const sent = await sendEmail({
       to: email,
-      subject: `\ud83d\udd27 Novo Chamado #${ticket.ticketNumber} - ${problemTypeLabels[ticket.problemType]}`,
+      subject: `🔧 Novo Chamado #${ticket.ticketNumber} - ${problemTypeLabels[ticket.problemType]}`,
       html,
     });
     if (!sent) allSent = false;
@@ -244,32 +255,34 @@ export async function sendTicketConfirmation(ticket: {
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: #10b981; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
         .content { background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; }
-        .ticket-number { font-size: 32px; font-weight: bold; color: #2563eb; text-align: center; margin: 20px 0; }
-        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .ticket-number { font-size: 24px; font-weight: bold; color: #10b981; margin: 20px 0; }
+        .info { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
         .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>✅ Chamado Recebido com Sucesso!</h1>
+          <h1>✓ Chamado Recebido</h1>
         </div>
         <div class="content">
-          <p>Olá <strong>${ticket.requesterName}</strong>,</p>
-          <p>Seu chamado foi registrado com sucesso em nosso sistema. Anote o número do chamado para acompanhamento:</p>
+          <p>Olá ${ticket.requesterName},</p>
           
-          <div class="ticket-number">#${ticket.ticketNumber}</div>
+          <p>Seu chamado de manutenção foi recebido com sucesso! Aqui estão os detalhes:</p>
           
-          <div class="info-box">
-            <h3>Resumo do Chamado:</h3>
-            <p><strong>Localidade:</strong> ${ticket.location}</p>
-            <p><strong>Tipo:</strong> ${problemTypeLabels[ticket.problemType]}</p>
-            <p><strong>Urgência:</strong> ${ticket.urgency}</p>
-            <p><strong>Descrição:</strong> ${ticket.description}</p>
+          <div class="ticket-number">
+            Número do Chamado: #${ticket.ticketNumber}
           </div>
-
-          <p>Nossa equipe de manutenção foi notificada e em breve entrará em contato para resolver o problema.</p>
-          <p>Você receberá atualizações por e-mail conforme o andamento do chamado.</p>
+          
+          <div class="info">
+            <p><strong>Localidade:</strong> ${ticket.location}</p>
+            <p><strong>Tipo de Problema:</strong> ${problemTypeLabels[ticket.problemType]}</p>
+            <p><strong>Urgência:</strong> ${ticket.urgency.toUpperCase()}</p>
+          </div>
+          
+          <p>Você pode acompanhar o status do seu chamado usando o número acima no sistema.</p>
+          
+          <p>Obrigado por usar nosso sistema de manutenção!</p>
         </div>
         <div class="footer">
           <p>Sistema de Manutenção - Confirmação Automática</p>
@@ -281,7 +294,7 @@ export async function sendTicketConfirmation(ticket: {
 
   return await sendEmail({
     to: ticket.requesterEmail,
-    subject: `✅ Chamado #${ticket.ticketNumber} Recebido - Sistema de Manutenção`,
+    subject: `✓ Chamado #${ticket.ticketNumber} Recebido`,
     html,
   });
 }
@@ -289,12 +302,12 @@ export async function sendTicketConfirmation(ticket: {
 /**
  * Envia notificação de mudança de status
  */
-export async function sendStatusUpdateNotification(ticket: {
+export async function sendStatusChangeNotification(ticket: {
   ticketNumber: string;
   requesterEmail: string;
   requesterName: string;
-  status: string;
-  technicianName?: string;
+  newStatus: string;
+  notes?: string;
 }) {
   const statusLabels: Record<string, string> = {
     aberto: 'Aberto',
@@ -303,7 +316,7 @@ export async function sendStatusUpdateNotification(ticket: {
   };
 
   const statusColors: Record<string, string> = {
-    aberto: '#6b7280',
+    aberto: '#3b82f6',
     em_execucao: '#f59e0b',
     finalizado: '#10b981',
   };
@@ -316,44 +329,34 @@ export async function sendStatusUpdateNotification(ticket: {
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: ${statusColors[ticket.status] || '#6b7280'}; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .header { background: ${statusColors[ticket.newStatus] || '#6b7280'}; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
         .content { background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; }
-        .status-badge { 
-          display: inline-block; 
-          padding: 8px 16px; 
-          border-radius: 12px; 
-          color: white; 
-          font-weight: bold;
-          background: ${statusColors[ticket.status] || '#6b7280'};
-          font-size: 18px;
-        }
+        .status-badge { display: inline-block; padding: 8px 16px; background: ${statusColors[ticket.newStatus] || '#6b7280'}; color: white; border-radius: 6px; font-weight: bold; }
         .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>🔔 Atualização do Chamado</h1>
+          <h1>📋 Atualização de Status</h1>
         </div>
         <div class="content">
-          <p>Olá <strong>${ticket.requesterName}</strong>,</p>
-          <p>O status do seu chamado <strong>#${ticket.ticketNumber}</strong> foi atualizado:</p>
+          <p>Olá ${ticket.requesterName},</p>
           
-          <div style="text-align: center; margin: 30px 0;">
-            <span class="status-badge">${statusLabels[ticket.status]}</span>
+          <p>O status do seu chamado foi atualizado:</p>
+          
+          <div style="text-align: center; margin: 20px 0;">
+            <span class="status-badge">${statusLabels[ticket.newStatus]}</span>
           </div>
-
-          ${ticket.technicianName ? `<p><strong>Responsável:</strong> ${ticket.technicianName}</p>` : ''}
           
-          ${ticket.status === 'finalizado' ? `
-            <p style="margin-top: 30px; padding: 20px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
-              <strong>⭐ Avalie nosso serviço!</strong><br>
-              Sua opinião é muito importante para nós. Por favor, avalie o atendimento recebido.
-            </p>
-          ` : ''}
+          <p><strong>Número do Chamado:</strong> #${ticket.ticketNumber}</p>
+          
+          ${ticket.notes ? `<p><strong>Observações:</strong> ${ticket.notes}</p>` : ''}
+          
+          <p>Obrigado!</p>
         </div>
         <div class="footer">
-          <p>Sistema de Manutenção - Atualização Automática</p>
+          <p>Sistema de Manutenção - Notificação Automática</p>
         </div>
       </div>
     </body>
@@ -362,15 +365,19 @@ export async function sendStatusUpdateNotification(ticket: {
 
   return await sendEmail({
     to: ticket.requesterEmail,
-    subject: `🔔 Chamado #${ticket.ticketNumber} - ${statusLabels[ticket.status]}`,
+    subject: `📋 Chamado #${ticket.ticketNumber} - Status: ${statusLabels[ticket.newStatus]}`,
     html,
   });
 }
 
 /**
- * Testa a configuração de e-mail
+ * Envia solicitação de avaliação
  */
-export async function testEmailConfiguration(testEmail: string): Promise<boolean> {
+export async function sendRatingRequest(ticket: {
+  ticketNumber: string;
+  requesterEmail: string;
+  requesterName: string;
+}) {
   const html = `
     <!DOCTYPE html>
     <html>
@@ -379,18 +386,32 @@ export async function testEmailConfiguration(testEmail: string): Promise<boolean
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px; }
-        .content { padding: 30px; }
+        .header { background: #fbbf24; color: #1f2937; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; }
+        .button { display: inline-block; padding: 12px 24px; background: #fbbf24; color: #1f2937; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>✅ Teste de Configuração de E-mail</h1>
+          <h1>⭐ Sua Opinião é Importante</h1>
         </div>
         <div class="content">
-          <p>Este é um e-mail de teste do Sistema de Manutenção.</p>
-          <p>Se você recebeu esta mensagem, a configuração SMTP está funcionando corretamente!</p>
+          <p>Olá ${ticket.requesterName},</p>
+          
+          <p>O serviço referente ao chamado <strong>#${ticket.ticketNumber}</strong> foi finalizado.</p>
+          
+          <p>Gostaríamos de saber sua opinião sobre o atendimento. Sua avaliação nos ajuda a melhorar continuamente!</p>
+          
+          <div style="text-align: center;">
+            <a href="https://seu-site.com/avaliar/${ticket.ticketNumber}" class="button">Avaliar Serviço</a>
+          </div>
+          
+          <p>Obrigado!</p>
+        </div>
+        <div class="footer">
+          <p>Sistema de Manutenção - Solicitação de Avaliação</p>
         </div>
       </div>
     </body>
@@ -398,8 +419,8 @@ export async function testEmailConfiguration(testEmail: string): Promise<boolean
   `;
 
   return await sendEmail({
-    to: testEmail,
-    subject: '✅ Teste de Configuração - Sistema de Manutenção',
+    to: ticket.requesterEmail,
+    subject: `⭐ Avalie o Serviço - Chamado #${ticket.ticketNumber}`,
     html,
   });
 }

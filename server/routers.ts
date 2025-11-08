@@ -5,7 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { storagePut } from "./storage";
-import { sendNewTicketNotification, sendTicketConfirmation, sendStatusUpdateNotification, testEmailConfiguration } from "./email";
+import { sendNewTicketNotification, sendTicketConfirmation, sendStatusChangeNotification, sendRatingRequest } from "./email";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -143,12 +143,12 @@ export const appRouter = router({
           performedBy: ctx.user.name || ctx.user.email || "Administrador",
         });
         const technician = ticket.technicianId ? await db.getTechnicianById(ticket.technicianId) : null;
-        await sendStatusUpdateNotification({
+        await sendStatusChangeNotification({
           ticketNumber: ticket.ticketNumber,
           requesterEmail: ticket.requesterEmail,
           requesterName: ticket.requesterName,
-          status: input.status,
-          technicianName: technician?.name,
+          newStatus: input.status,
+          notes: technician ? `Responsável: ${technician.name}` : undefined,
         });
         if (input.status === "finalizado") {
           await db.updateTicket(input.id, { completedAt: new Date() });
@@ -314,7 +314,12 @@ export const appRouter = router({
     testEmail: protectedProcedure
       .input(z.object({ email: z.string().email() }))
       .mutation(async ({ input }) => {
-        const result = await testEmailConfiguration(input.email);
+        const { sendEmail } = await import('./email');
+        const result = await sendEmail({
+          to: input.email,
+          subject: 'Teste de E-mail - Sistema de Manutenção',
+          html: '<h1>Teste de E-mail</h1><p>Este é um e-mail de teste do Sistema de Manutenção Sesc Guará.</p>',
+        });
         return { success: result };
       }),
   }),
