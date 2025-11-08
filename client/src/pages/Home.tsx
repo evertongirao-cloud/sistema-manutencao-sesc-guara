@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wrench, Plus, Search, LayoutDashboard } from "lucide-react";
+import { Plus, Search, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 
@@ -12,12 +12,8 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <header className="bg-white shadow-sm border-b">
         <div className="container py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Wrench className="h-8 w-8 text-blue-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-blue-600">Manutenção Sesc Guará</h1>
-              <p className="text-xs text-gray-600">Sistema de Gerenciamento de Chamados</p>
-            </div>
+          <div className="flex items-center gap-4">
+            <img src="/sesc-guara-logo-horizontal.png" alt="Sesc Guará" className="h-16 object-contain" />
           </div>
           {!isAuthenticated ? (
             <Button asChild>
@@ -147,11 +143,14 @@ export default function Home() {
       </section>
 
       <footer className="bg-blue-900 text-white py-8">
-        <div className="container text-center">
-          <p className="text-blue-200">
+        <div className="container">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <img src="/sesc-guara-logo-horizontal.png" alt="Sesc Guará" className="h-12 object-contain" />
+          </div>
+          <p className="text-blue-200 text-center">
             © 2024 Manutenção Sesc Guará. Todos os direitos reservados.
           </p>
-          <p className="text-blue-300 text-sm mt-2">
+          <p className="text-blue-300 text-sm mt-2 text-center">
             Criado por Everton Carlos
           </p>
         </div>

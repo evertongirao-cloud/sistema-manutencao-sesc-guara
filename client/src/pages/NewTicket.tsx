@@ -139,10 +139,16 @@ export default function NewTicket() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <header className="bg-white shadow-sm border-b">
+        <div className="container py-4">
+          <img src="/sesc-guara-logo-horizontal.png" alt="Sesc Guará" className="h-16 object-contain" />
+        </div>
+      </header>
+      <div className="py-12 px-4">
       <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-blue-600 mb-2">🔧 Manutenção Sesc Guará</h1>
+        <h1 className="text-4xl font-bold text-blue-600 mb-2">\ud83d\udd27 Novo Chamado</h1>
         <p className="text-lg text-gray-600">Abra um novo chamado de manutenção</p>
       </div>
 
@@ -293,6 +299,7 @@ export default function NewTicket() {
             </form>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );

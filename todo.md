@@ -84,3 +84,7 @@
 - [x] Alterar cores para azul e amarelo
 - [x] Adicionar título "Manutenção Sesc Guará" no cabeçalho
 - [x] Adicionar crédito "Criado por Everton Carlos" no rodapé
+
+- [x] Gerar logo da Sesc Guará
+- [x] Integrar logo no cabeçalho
+- [x] Adicionar logo ao rodapé
