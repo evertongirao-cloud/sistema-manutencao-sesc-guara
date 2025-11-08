@@ -11,13 +11,33 @@ interface EmailOptions {
  * Cria um transporter do Nodemailer com as credenciais SMTP
  */
 function createTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || '587');
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  
+  console.log('[Email] Configuração SMTP:', {
+    host,
+    port,
+    user,
+    passLength: pass ? pass.length : 0,
+  });
+  
+  if (!host || !user || !pass) {
+    console.error('[Email] Credenciais SMTP incompletas:', {
+      host: !!host,
+      user: !!user,
+      pass: !!pass,
+    });
+  }
+  
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
+    host,
+    port,
     secure: false, // true para 465, false para outras portas
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user,
+      pass,
     },
   });
 }

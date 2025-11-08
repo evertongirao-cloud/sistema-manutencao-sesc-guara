@@ -100,3 +100,5 @@
 - [x] Adicionar atalho para voltar ao início em todas as páginas
 - [x] Corrigir envio de e-mail para responsável quando chamado é aberto
 - [x] Corrigir envio de e-mail para gerenciador quando chamado é aberto
+
+- [x] Corrigir configuração SMTP e salvar credenciais corretamente
