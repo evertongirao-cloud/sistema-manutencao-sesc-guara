@@ -67,6 +67,14 @@ export const appRouter = router({
             description: "Chamado criado",
             performedBy: input.requesterName,
           });
+          
+          // Buscar e-mail do responsável se houver
+          let responsibleEmail: string | null = null;
+          if (ticket.technicianId) {
+            const technician = await db.getTechnicianById(ticket.technicianId);
+            responsibleEmail = technician?.email || null;
+          }
+          
           await sendNewTicketNotification({
             ticketNumber,
             requesterName: input.requesterName,
@@ -76,6 +84,7 @@ export const appRouter = router({
             description: input.description,
             urgency: input.urgency,
             imageUrl,
+            responsibleEmail,
           });
           await sendTicketConfirmation({
             ticketNumber,

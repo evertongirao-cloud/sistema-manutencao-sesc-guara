@@ -96,3 +96,7 @@
 - [x] Substituir logo gerado pelo logo oficial do Sesc Fecomércio Senac
 - [x] Configurar credenciais SMTP para envio de e-mail
 - [x] Testar envio de e-mail de notificação
+
+- [x] Adicionar atalho para voltar ao início em todas as páginas
+- [x] Corrigir envio de e-mail para responsável quando chamado é aberto
+- [x] Corrigir envio de e-mail para gerenciador quando chamado é aberto

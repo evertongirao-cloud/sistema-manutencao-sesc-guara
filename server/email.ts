@@ -45,7 +45,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 }
 
 /**
- * Envia notificação de novo chamado para o administrador
+ * Envia notificação de novo chamado para o administrador e responsável
  */
 export async function sendNewTicketNotification(ticket: {
   ticketNumber: string;
@@ -56,12 +56,18 @@ export async function sendNewTicketNotification(ticket: {
   description: string;
   urgency: string;
   imageUrl?: string | null;
+  responsibleEmail?: string | null;
 }) {
   const notificationEmail = await getNotificationEmail();
   
   if (!notificationEmail) {
     console.warn('[Email] E-mail de notificação não configurado');
     return false;
+  }
+  
+  const emailsToSend = [notificationEmail];
+  if (ticket.responsibleEmail && ticket.responsibleEmail !== notificationEmail) {
+    emailsToSend.push(ticket.responsibleEmail);
   }
 
   const urgencyColors: Record<string, string> = {
@@ -175,11 +181,16 @@ export async function sendNewTicketNotification(ticket: {
     </html>
   `;
 
-  return await sendEmail({
-    to: notificationEmail,
-    subject: `🔧 Novo Chamado #${ticket.ticketNumber} - ${problemTypeLabels[ticket.problemType]}`,
-    html,
-  });
+  let allSent = true;
+  for (const email of emailsToSend) {
+    const sent = await sendEmail({
+      to: email,
+      subject: `\ud83d\udd27 Novo Chamado #${ticket.ticketNumber} - ${problemTypeLabels[ticket.problemType]}`,
+      html,
+    });
+    if (!sent) allSent = false;
+  }
+  return allSent;
 }
 
 /**

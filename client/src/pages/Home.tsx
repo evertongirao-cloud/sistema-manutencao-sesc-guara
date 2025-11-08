@@ -12,9 +12,9 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <header className="bg-white shadow-sm border-b">
         <div className="container py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
             <img src="/sesc-logo.png" alt="Sesc" className="h-16 object-contain" />
-          </div>
+          </Link>
           {!isAuthenticated ? (
             <Button asChild>
               <a href={getLoginUrl()}>Área Administrativa</a>

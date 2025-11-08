@@ -166,8 +166,11 @@ export default function RateTicket() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white shadow-sm border-b">
-        <div className="container py-4">
-          <img src="/sesc-logo.png" alt="Sesc" className="h-16 object-contain" />
+        <div className="container py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src="/sesc-logo.png" alt="Sesc" className="h-16 object-contain" />
+          </Link>
+          <Link href="/" className="text-sm text-blue-600 hover:text-blue-800 font-medium">← Voltar ao Início</Link>
         </div>
       </header>
       <div className="py-12 px-4">
