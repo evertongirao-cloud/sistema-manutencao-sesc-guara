@@ -13,7 +13,7 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img src="/sesc-guara-logo-horizontal.png" alt="Sesc Guará" className="h-16 object-contain" />
+            <img src="/sesc-logo.png" alt="Sesc" className="h-16 object-contain" />
           </div>
           {!isAuthenticated ? (
             <Button asChild>
@@ -145,7 +145,7 @@ export default function Home() {
       <footer className="bg-blue-900 text-white py-8">
         <div className="container">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <img src="/sesc-guara-logo-horizontal.png" alt="Sesc Guará" className="h-12 object-contain" />
+            <img src="/sesc-logo.png" alt="Sesc" className="h-12 object-contain" />
           </div>
           <p className="text-blue-200 text-center">
             © 2024 Manutenção Sesc Guará. Todos os direitos reservados.

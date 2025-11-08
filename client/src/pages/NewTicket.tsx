@@ -142,7 +142,7 @@ export default function NewTicket() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white shadow-sm border-b">
         <div className="container py-4">
-          <img src="/sesc-guara-logo-horizontal.png" alt="Sesc Guará" className="h-16 object-contain" />
+          <img src="/sesc-logo.png" alt="Sesc" className="h-16 object-contain" />
         </div>
       </header>
       <div className="py-12 px-4">

@@ -14,6 +14,7 @@ export default function Settings() {
   const [testEmail, setTestEmail] = useState("");
 
   const { data: emailSetting, isLoading } = trpc.settings.get.useQuery({ key: "notification_email" });
+  const { data: allSettings } = trpc.settings.list.useQuery();
 
   const setSetting = trpc.settings.set.useMutation({
     onSuccess: () => {
@@ -32,10 +33,15 @@ export default function Settings() {
   });
 
   useEffect(() => {
-    if (emailSetting) {
+    if (emailSetting?.value) {
       setNotificationEmail(emailSetting.value);
+    } else if (allSettings && allSettings.length > 0) {
+      const setting = allSettings.find((s: any) => s.key === "notification_email");
+      if (setting?.value) {
+        setNotificationEmail(setting.value);
+      }
     }
-  }, [emailSetting]);
+  }, [emailSetting, allSettings]);
 
   const handleSaveEmail = () => {
     if (!notificationEmail.trim()) {

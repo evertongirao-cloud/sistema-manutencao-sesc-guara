@@ -88,3 +88,11 @@
 - [x] Gerar logo da Sesc Guará
 - [x] Integrar logo no cabeçalho
 - [x] Adicionar logo ao rodapé
+
+
+## Manutenção
+- [x] Reiniciar servidor de desenvolvimento
+
+- [x] Substituir logo gerado pelo logo oficial do Sesc Fecomércio Senac
+- [x] Configurar credenciais SMTP para envio de e-mail
+- [x] Testar envio de e-mail de notificação
