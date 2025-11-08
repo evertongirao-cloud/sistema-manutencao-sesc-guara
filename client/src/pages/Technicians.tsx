@@ -102,7 +102,7 @@ export default function Technicians() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Responsáveis pela Manutenção</h1>
+            <h1 className="text-3xl font-bold text-blue-600">Responsáveis pela Manutenção - Sesc Guará</h1>
             <p className="text-gray-600 mt-1">Gerencie a equipe de manutenção</p>
           </div>
           <Button asChild variant="outline">

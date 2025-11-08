@@ -76,7 +76,7 @@ export default function Settings() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Configurações do Sistema</h1>
+            <h1 className="text-3xl font-bold text-blue-600">Configurações do Sistema - Sesc Guará</h1>
             <p className="text-gray-600 mt-1">Configure as preferências do sistema de manutenção</p>
           </div>
           <Button asChild variant="outline">

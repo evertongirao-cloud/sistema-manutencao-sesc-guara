@@ -14,7 +14,10 @@ export default function Home() {
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Wrench className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Sistema de Manutenção</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-blue-600">Manutenção Sesc Guará</h1>
+              <p className="text-xs text-gray-600">Sistema de Gerenciamento de Chamados</p>
+            </div>
           </div>
           {!isAuthenticated ? (
             <Button asChild>
@@ -143,10 +146,13 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="bg-gray-900 text-white py-8">
+      <footer className="bg-blue-900 text-white py-8">
         <div className="container text-center">
-          <p className="text-gray-400">
-            © 2024 Sistema de Manutenção. Todos os direitos reservados.
+          <p className="text-blue-200">
+            © 2024 Manutenção Sesc Guará. Todos os direitos reservados.
+          </p>
+          <p className="text-blue-300 text-sm mt-2">
+            Criado por Everton Carlos
           </p>
         </div>
       </footer>

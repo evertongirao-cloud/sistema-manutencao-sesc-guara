@@ -72,9 +72,15 @@
 - [x] Configurar variáveis de ambiente para SMTP
 - [x] Configurar e-mail de notificação padrão
 - [x] Testar fluxo completo de abertura até avaliação
-- [ ] Criar checkpoint final
+- [x] Criar checkpoint final
 
 ## Configurações do Sistema
 - [x] Criar tabela de configurações no banco de dados
 - [x] Implementar página de configurações para alterar e-mail de notificação
 - [x] Permitir teste de envio de e-mail nas configurações
+
+
+## Personalização
+- [x] Alterar cores para azul e amarelo
+- [x] Adicionar título "Manutenção Sesc Guará" no cabeçalho
+- [x] Adicionar crédito "Criado por Everton Carlos" no rodapé
