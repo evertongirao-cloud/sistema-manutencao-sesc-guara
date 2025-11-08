@@ -5,14 +5,26 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import NewTicket from "./pages/NewTicket";
+import AdminPanel from "./pages/AdminPanel";
+import Technicians from "./pages/Technicians";
+import Settings from "./pages/Settings";
+import TrackTicket from "./pages/TrackTicket";
+import RateTicket from "./pages/RateTicket";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path="/novo-chamado" component={NewTicket} />
+      <Route path="/admin" component={AdminPanel} />
+      <Route path="/admin/responsaveis" component={Technicians} />
+      <Route path="/admin/configuracoes" component={Settings} />
+      <Route path="/acompanhar" component={TrackTicket} />
+      <Route path="/acompanhar/:ticketNumber" component={TrackTicket} />
+      <Route path="/avaliar/:ticketId" component={RateTicket} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
