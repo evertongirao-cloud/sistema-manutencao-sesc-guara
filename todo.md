@@ -104,3 +104,7 @@
 - [x] Corrigir configuração SMTP e salvar credenciais corretamente
 
 - [x] Investigar e corrigir falha de envio de e-mail SMTP
+
+- [x] Armazenar credenciais SMTP no banco de dados de forma segura
+- [x] Criar interface para gerenciar credenciais SMTP no painel administrativo
+- [x] Testar envio de e-mail com credenciais armazenadas

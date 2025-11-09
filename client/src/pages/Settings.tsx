@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Mail, Send } from "lucide-react";
+import { Loader2, Mail, Send, Settings as SettingsIcon } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Link } from "wouter";
@@ -12,13 +12,18 @@ import { Link } from "wouter";
 export default function Settings() {
   const [notificationEmail, setNotificationEmail] = useState("");
   const [testEmail, setTestEmail] = useState("");
+  const [smtpHost, setSmtpHost] = useState("");
+  const [smtpPort, setSmtpPort] = useState("587");
+  const [smtpUser, setSmtpUser] = useState("");
+  const [smtpPass, setSmtpPass] = useState("");
+  const [showSmtpForm, setShowSmtpForm] = useState(false);
 
   const { data: emailSetting, isLoading } = trpc.settings.get.useQuery({ key: "notification_email" });
   const { data: allSettings } = trpc.settings.list.useQuery();
 
   const setSetting = trpc.settings.set.useMutation({
     onSuccess: () => {
-      toast.success("E-mail de notificação atualizado com sucesso!");
+      toast.success("Configuração atualizada com sucesso!");
     },
   });
 
@@ -40,6 +45,16 @@ export default function Settings() {
       if (setting?.value) {
         setNotificationEmail(setting.value);
       }
+      
+      const host = allSettings.find((s: any) => s.key === "smtp_host");
+      const port = allSettings.find((s: any) => s.key === "smtp_port");
+      const user = allSettings.find((s: any) => s.key === "smtp_user");
+      const pass = allSettings.find((s: any) => s.key === "smtp_pass");
+      
+      if (host?.value) setSmtpHost(host.value);
+      if (port?.value) setSmtpPort(port.value);
+      if (user?.value) setSmtpUser(user.value);
+      if (pass?.value) setSmtpPass(pass.value);
     }
   }, [emailSetting, allSettings]);
 
@@ -75,6 +90,21 @@ export default function Settings() {
     }
 
     testEmailMutation.mutate({ email: testEmail });
+  };
+
+  const handleSaveSmtp = () => {
+    if (!smtpHost.trim() || !smtpUser.trim() || !smtpPass.trim()) {
+      toast.error("Preencha todos os campos SMTP");
+      return;
+    }
+
+    setSetting.mutate({ key: "smtp_host", value: smtpHost, description: "Servidor SMTP" });
+    setSetting.mutate({ key: "smtp_port", value: smtpPort, description: "Porta SMTP" });
+    setSetting.mutate({ key: "smtp_user", value: smtpUser, description: "Usuário SMTP" });
+    setSetting.mutate({ key: "smtp_pass", value: smtpPass, description: "Senha SMTP" });
+    
+    toast.success("Configurações SMTP salvas com sucesso!");
+    setShowSmtpForm(false);
   };
 
   return (
@@ -190,28 +220,99 @@ export default function Settings() {
           </Card>
         </div>
 
-        {/* Informações SMTP */}
+        {/* Configurações SMTP */}
         <Card>
           <CardHeader>
-            <CardTitle>Configurações SMTP</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5" />
+              Configurações SMTP
+            </CardTitle>
             <CardDescription>
-              As configurações SMTP são gerenciadas através de variáveis de ambiente
+              Configure as credenciais do servidor SMTP para envio de e-mails
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-900">
-                <strong>ℹ️ Informação:</strong> As credenciais SMTP (servidor, porta, usuário e senha)
-                são configuradas de forma segura através de variáveis de ambiente. Para alterar essas
-                configurações, entre em contato com o administrador do sistema.
-              </p>
-              <div className="mt-4 space-y-2 text-sm text-blue-800">
-                <p><strong>Servidor SMTP:</strong> Configurado via SMTP_HOST</p>
-                <p><strong>Porta:</strong> Configurada via SMTP_PORT</p>
-                <p><strong>Usuário:</strong> Configurado via SMTP_USER</p>
-                <p><strong>Senha:</strong> Configurada via SMTP_PASS (protegida)</p>
+          <CardContent className="space-y-4">
+            {!showSmtpForm ? (
+              <Button
+                onClick={() => setShowSmtpForm(true)}
+                className="w-full"
+              >
+                Configurar SMTP
+              </Button>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="smtpHost">Servidor SMTP</Label>
+                  <Input
+                    id="smtpHost"
+                    value={smtpHost}
+                    onChange={(e) => setSmtpHost(e.target.value)}
+                    placeholder="smtp.gmail.com"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="smtpPort">Porta</Label>
+                    <Input
+                      id="smtpPort"
+                      value={smtpPort}
+                      onChange={(e) => setSmtpPort(e.target.value)}
+                      placeholder="587"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="smtpUser">Usuário/E-mail</Label>
+                  <Input
+                    id="smtpUser"
+                    type="email"
+                    value={smtpUser}
+                    onChange={(e) => setSmtpUser(e.target.value)}
+                    placeholder="seu@email.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="smtpPass">Senha</Label>
+                  <Input
+                    id="smtpPass"
+                    type="password"
+                    value={smtpPass}
+                    onChange={(e) => setSmtpPass(e.target.value)}
+                    placeholder="Sua senha"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Para Gmail, use uma senha de aplicativo em vez da senha da conta.
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSaveSmtp}
+                    disabled={setSetting.isPending}
+                    className="flex-1"
+                  >
+                    {setSetting.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      "Salvar Configurações"
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => setShowSmtpForm(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

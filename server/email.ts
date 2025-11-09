@@ -9,12 +9,31 @@ interface EmailOptions {
 
 /**
  * Cria um transporter do Nodemailer com as credenciais SMTP
+ * Primeiro tenta usar credenciais do banco de dados, depois variáveis de ambiente
  */
-function createTransporter() {
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || '587');
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+async function createTransporter() {
+  let host = process.env.SMTP_HOST;
+  let port = parseInt(process.env.SMTP_PORT || '587');
+  let user = process.env.SMTP_USER;
+  let pass = process.env.SMTP_PASS;
+  
+  // Tentar obter credenciais do banco de dados
+  try {
+    const dbHost = await getSmtpSetting('smtp_host');
+    const dbPort = await getSmtpSetting('smtp_port');
+    const dbUser = await getSmtpSetting('smtp_user');
+    const dbPass = await getSmtpSetting('smtp_pass');
+    
+    if (dbHost && dbUser && dbPass) {
+      host = dbHost;
+      port = parseInt(dbPort || '587');
+      user = dbUser;
+      pass = dbPass;
+      console.log('[Email] Usando credenciais SMTP do banco de dados');
+    }
+  } catch (error) {
+    console.log('[Email] Usando credenciais SMTP das variáveis de ambiente');
+  }
   
   console.log('[Email] Configuração SMTP:', {
     host,
@@ -43,21 +62,32 @@ function createTransporter() {
 }
 
 /**
+ * Obtém uma configuração SMTP do banco de dados
+ */
+async function getSmtpSetting(key: string): Promise<string | null> {
+  try {
+    const db = await import('./db');
+    const setting = await db.getSetting(key);
+    return setting?.value || null;
+  } catch (error) {
+    console.log('[Email] Não foi possível obter configuração do banco:', key);
+    return null;
+  }
+}
+
+/**
  * Envia um e-mail
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.error('[Email] Credenciais SMTP não configuradas');
-      return false;
-    }
-    
-    const transporter = createTransporter();
+    const transporter = await createTransporter();
     
     console.log('[Email] Tentando enviar e-mail para:', options.to);
     
+    const smtpUser = process.env.SMTP_USER || 'noreply@sistema-manutencao.com';
+    
     const info = await transporter.sendMail({
-      from: `"Sistema de Manutenção" <${process.env.SMTP_USER}>`,
+      from: `"Sistema de Manutenção" <${smtpUser}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
