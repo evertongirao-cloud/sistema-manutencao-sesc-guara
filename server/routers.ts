@@ -220,6 +220,25 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return await db.getTicketHistory(input.ticketId);
       }),
+    stats: publicProcedure.query(async () => {
+      const tickets = await db.getAllTickets();
+      const totalTickets = tickets.length;
+      const completedTickets = tickets.filter(t => t.status === 'finalizado').length;
+      const inProgressTickets = tickets.filter(t => t.status === 'em_execucao').length;
+      const openTickets = tickets.filter(t => t.status === 'aberto').length;
+      
+      const completionRate = totalTickets > 0
+        ? Math.round((completedTickets / totalTickets) * 100)
+        : 0;
+      
+      return {
+        totalTickets,
+        completedTickets,
+        inProgressTickets,
+        openTickets,
+        completionRate,
+      };
+    }),
   }),
 
   technicians: router({
@@ -289,6 +308,23 @@ export const appRouter = router({
       }),
     list: protectedProcedure.query(async () => {
       return await db.getAllRatings();
+    }),
+    stats: publicProcedure.query(async () => {
+      const ratings = await db.getAllRatings();
+      const totalRatings = ratings.length;
+      const averageRating = totalRatings > 0
+        ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+        : 0;
+      
+      const recentRatings = ratings
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5);
+      
+      return {
+        totalRatings,
+        averageRating: Math.round(averageRating * 10) / 10,
+        recentRatings,
+      };
     }),
   }),
 

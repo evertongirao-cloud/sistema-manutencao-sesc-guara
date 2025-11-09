@@ -108,3 +108,8 @@
 - [x] Armazenar credenciais SMTP no banco de dados de forma segura
 - [x] Criar interface para gerenciar credenciais SMTP no painel administrativo
 - [x] Testar envio de e-mail com credenciais armazenadas
+
+- [x] Criar endpoint para buscar estatísticas de avaliações
+- [x] Criar endpoint para buscar estatísticas de chamados executados
+- [x] Adicionar painel de avaliações na página inicial
+- [x] Adicionar painel de estatísticas de chamados na página inicial
