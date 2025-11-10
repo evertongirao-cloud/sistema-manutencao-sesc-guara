@@ -113,3 +113,7 @@
 - [x] Criar endpoint para buscar estatísticas de chamados executados
 - [x] Adicionar painel de avaliações na página inicial
 - [x] Adicionar painel de estatísticas de chamados na página inicial
+
+- [x] Atualizar templates de e-mail com link para o site
+- [x] Adicionar botão de avaliação na página de acompanhamento de chamados
+- [x] Permitir avaliação direta de chamados finalizados sem precisar de link especial

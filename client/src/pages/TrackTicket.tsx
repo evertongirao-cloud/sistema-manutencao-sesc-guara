@@ -3,11 +3,13 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Search, Calendar, User, MapPin, Star } from "lucide-react";
 import { Link, useParams } from "wouter";
+import { toast } from "sonner";
 
 const problemTypeLabels: Record<string, string> = {
   eletrica: "⚡ Elétrica",
@@ -42,6 +44,11 @@ export default function TrackTicket() {
 
   const [ticketNumber, setTicketNumber] = useState(ticketNumberFromUrl || "");
   const [searchedNumber, setSearchedNumber] = useState(ticketNumberFromUrl || "");
+  
+  // Rating state
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState("");
 
   const { data: ticket, isLoading, error } = trpc.tickets.getByNumber.useQuery(
     { ticketNumber: searchedNumber },
@@ -53,16 +60,45 @@ export default function TrackTicket() {
     { enabled: !!ticket }
   );
 
-  const { data: rating } = trpc.ratings.getByTicket.useQuery(
+  const { data: existingRating, refetch: refetchRating } = trpc.ratings.getByTicket.useQuery(
     { ticketId: ticket?.id || 0 },
-    { enabled: !!ticket && ticket.status === "finalizado" }
+    { enabled: !!ticket }
   );
+
+  const createRating = trpc.ratings.create.useMutation({
+    onSuccess: () => {
+      toast.success("Avaliação enviada com sucesso!");
+      refetchRating();
+      setRating(0);
+      setComment("");
+    },
+    onError: (error) => {
+      toast.error(`Erro ao enviar avaliação: ${error.message}`);
+    },
+  });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (ticketNumber.trim()) {
       setSearchedNumber(ticketNumber.trim());
     }
+  };
+
+  const handleRatingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (rating === 0) {
+      toast.error("Por favor, selecione uma avaliação de 1 a 5 estrelas");
+      return;
+    }
+
+    if (!ticket) return;
+
+    createRating.mutate({
+      ticketId: ticket.id,
+      rating,
+      comment: comment.trim() || undefined,
+    });
   };
 
   return (
@@ -78,24 +114,19 @@ export default function TrackTicket() {
       <div className="py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-600 mb-2">\ud83d\udd0d Acompanhar Chamado</h1>
-          <p className="text-lg text-gray-600">Digite o número do chamado para consultar o status</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">Acompanhar Chamado</h1>
+          <p className="text-gray-600">Digite o número do chamado para consultar o status</p>
         </div>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Buscar Chamado</CardTitle>
-            <CardDescription>
-              Informe o número do chamado que você recebeu por e-mail
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Card className="mb-8">
+          <CardContent className="pt-6">
             <form onSubmit={handleSearch} className="flex gap-3">
               <div className="flex-1">
                 <Input
+                  type="text"
+                  placeholder="Digite o número do chamado (ex: MNT-20250108-0001)"
                   value={ticketNumber}
                   onChange={(e) => setTicketNumber(e.target.value)}
-                  placeholder="Ex: 20240108-0001"
                   className="text-lg"
                 />
               </div>
@@ -114,7 +145,7 @@ export default function TrackTicket() {
         </Card>
 
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mb-6">
             <AlertDescription>
               Chamado não encontrado. Verifique o número e tente novamente.
             </AlertDescription>
@@ -127,20 +158,16 @@ export default function TrackTicket() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-2xl">Chamado #{ticket.ticketNumber}</CardTitle>
-                    <CardDescription className="mt-2">
-                      Aberto em {new Date(ticket.createdAt).toLocaleDateString("pt-BR")} às{" "}
-                      {new Date(ticket.createdAt).toLocaleTimeString("pt-BR")}
+                    <CardTitle className="text-2xl mb-2">
+                      Chamado #{ticket.ticketNumber}
+                    </CardTitle>
+                    <CardDescription>
+                      Aberto em {new Date(ticket.createdAt).toLocaleString("pt-BR")}
                     </CardDescription>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <Badge className={statusColors[ticket.status]}>
-                      {statusLabels[ticket.status]}
-                    </Badge>
-                    <Badge className={urgencyColors[ticket.urgency]}>
-                      Urgência: {ticket.urgency.toUpperCase()}
-                    </Badge>
-                  </div>
+                  <Badge className={statusColors[ticket.status]}>
+                    {statusLabels[ticket.status]}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -148,6 +175,14 @@ export default function TrackTicket() {
                   <div>
                     <Label className="text-muted-foreground">Tipo de Problema</Label>
                     <p className="text-lg font-medium">{problemTypeLabels[ticket.problemType]}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Urgência</Label>
+                    <div className="mt-1">
+                      <Badge className={urgencyColors[ticket.urgency]}>
+                        {ticket.urgency.charAt(0).toUpperCase() + ticket.urgency.slice(1)}
+                      </Badge>
+                    </div>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Localidade</Label>
@@ -236,7 +271,8 @@ export default function TrackTicket() {
               </Card>
             )}
 
-            {ticket.status === "finalizado" && !rating && (
+            {/* Avaliação inline para chamados finalizados */}
+            {ticket.status === "finalizado" && !existingRating && (
               <Card className="border-yellow-200 bg-yellow-50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -248,14 +284,69 @@ export default function TrackTicket() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button asChild className="w-full">
-                    <Link href={`/avaliar/${ticket.id}`}>Avaliar Atendimento</Link>
-                  </Button>
+                  <form onSubmit={handleRatingSubmit} className="space-y-4">
+                    <div>
+                      <Label>Avaliação *</Label>
+                      <div className="flex gap-2 mt-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRating(star)}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            className="transition-transform hover:scale-110"
+                          >
+                            <Star
+                              className={`h-10 w-10 ${
+                                star <= (hoverRating || rating)
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      {rating > 0 && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Você selecionou {rating} {rating === 1 ? "estrela" : "estrelas"}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="comment">Comentário (opcional)</Label>
+                      <Textarea
+                        id="comment"
+                        placeholder="Conte-nos sobre sua experiência..."
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        rows={4}
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={createRating.isPending || rating === 0}
+                    >
+                      {createRating.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        "Enviar Avaliação"
+                      )}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             )}
 
-            {rating && (
+            {/* Avaliação já enviada */}
+            {existingRating && (
               <Card className="border-green-200 bg-green-50">
                 <CardHeader>
                   <CardTitle className="text-green-800">Avaliação Enviada</CardTitle>
@@ -269,13 +360,13 @@ export default function TrackTicket() {
                       <Star
                         key={i}
                         className={`h-6 w-6 ${
-                          i < rating.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                          i < existingRating.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                         }`}
                       />
                     ))}
                   </div>
-                  {rating.comment && (
-                    <p className="mt-3 p-3 bg-white rounded-lg text-sm">{rating.comment}</p>
+                  {existingRating.comment && (
+                    <p className="mt-3 p-3 bg-white rounded-lg text-sm">{existingRating.comment}</p>
                   )}
                 </CardContent>
               </Card>

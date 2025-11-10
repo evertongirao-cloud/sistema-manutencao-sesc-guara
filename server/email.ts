@@ -229,7 +229,7 @@ export async function sendNewTicketNotification(ticket: {
           </div>
 
           <div style="text-align: center;">
-            <a href="https://seu-site.com/admin" class="button">
+            <a href="${process.env.VITE_APP_URL || 'https://3000-iu7ieyp22gom1g6meiy4w-ae54a728.manus.computer'}/admin" class="button">
               Acessar Painel de Manutenção
             </a>
           </div>
@@ -435,7 +435,7 @@ export async function sendRatingRequest(ticket: {
           <p>Gostaríamos de saber sua opinião sobre o atendimento. Sua avaliação nos ajuda a melhorar continuamente!</p>
           
           <div style="text-align: center;">
-            <a href="https://seu-site.com/avaliar/${ticket.ticketNumber}" class="button">Avaliar Serviço</a>
+            <a href="${process.env.VITE_APP_URL || 'https://3000-iu7ieyp22gom1g6meiy4w-ae54a728.manus.computer'}/acompanhar" class="button">Avaliar Serviço</a>
           </div>
           
           <p>Obrigado!</p>
