@@ -117,3 +117,7 @@
 - [x] Atualizar templates de e-mail com link para o site
 - [x] Adicionar botão de avaliação na página de acompanhamento de chamados
 - [x] Permitir avaliação direta de chamados finalizados sem precisar de link especial
+
+- [x] Atualizar rodapé para 2025 em todas as páginas
+- [x] Configurar repositório Git
+- [x] Exportar projeto para GitHub

@@ -303,7 +303,7 @@ export default function Home() {
           <div className="flex flex-col items-center gap-6">
             <img src="/sesc-logo.png" alt="Sesc" className="h-16 object-contain opacity-80" />
             <p className="text-center text-blue-200">
-              © 2024 Manutenção Sesc Guará. Todos os direitos reservados.
+              © 2025 Manutenção Sesc Guará. Todos os direitos reservados.
             </p>
             <p className="text-sm text-blue-300">
               Criado por Everton Carlos
