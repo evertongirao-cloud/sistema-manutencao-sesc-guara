@@ -121,3 +121,7 @@
 - [x] Atualizar rodapé para 2025 em todas as páginas
 - [x] Configurar repositório Git
 - [x] Exportar projeto para GitHub
+
+- [ ] Criar arquivo vercel.json
+- [ ] Criar guia de deploy no Vercel
+- [ ] Fazer push das alterações para GitHub
